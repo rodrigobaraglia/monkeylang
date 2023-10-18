@@ -1,159 +1,5 @@
 use crate::token::{Interpolation, Num, Token};
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_single_char_tokens() {
-        let input = "=+(){},;";
-
-        let tests: Vec<_> = vec![
-            Token::ASSIGN,
-            Token::PLUS,
-            Token::LPAREN,
-            Token::RPAREN,
-            Token::LBRACE,
-            Token::RBRACE,
-            Token::COMMA,
-            Token::SEMICOLON,
-        ];
-        let mut cursor = Cursor::new(input);
-        tests.iter().for_each(|expected_token| {
-            let tok: Token = cursor.next_token();
-            assert_eq!(
-                &tok, expected_token,
-                "failed to match token token::Type, expected {:?} got {:?}",
-                expected_token, tok
-            );
-        });
-    }
-
-    #[test]
-    fn test_identifier_after_whitespace() {
-        let input = "   rodrigo";
-        let mut cursor = Cursor::new(input);
-        let token = cursor.next_token();
-        if let Token::IDENT { begin, end } = token {
-            let name = &input[begin..end];
-            assert_eq!(name, "rodrigo")
-        } else {
-            panic!("test failed")
-        }
-    }
-    #[test]
-    fn test_rational() {
-        let input = "   1234/5678";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::RATIONAL { num, denom } = token {
-            assert_eq!(num, 1234);
-            assert_eq!(denom, 5678)
-        } else {
-            panic!("test failed")
-        }
-    }
-
-    #[test]
-    fn test_float() {
-        let input = "   1234.5678";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::FLOAT(f) = token {
-            assert_eq!(f, 1234.5678);
-        } else {
-            panic!("test failed")
-        }
-    }
-
-    #[test]
-    fn test_integer() {
-        let input = "   12345678";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::INTEGER(n) = token {
-            assert_eq!(n, 12345678);
-        } else {
-            panic!("test failed")
-        }
-    }
-
-    #[test]
-    fn test_double_quote_string() {
-        let input = "   \"hello 'world'!\"";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::STRING { begin, end } = token {
-            let string = &input[begin..end];
-            assert_eq!(string, "\"hello 'world'!\"");
-        } else {
-            panic!("test failed")
-        }
-    }
-
-    #[test]
-    fn test_single_quote_string() {
-        let input = "   \'hello \"world\"!\'";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::STRING { begin, end } = token {
-            let string = &input[begin..end];
-            assert_eq!(string, "\'hello \"world\"!\'");
-        } else {
-            panic!("test failed")
-        }
-    }
-    #[test]
-    fn test_super_string_var() {
-        let input = "   `hello $world!`";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::SUPER_STRING { begin, end, quotes } = token {
-            let string = &input[begin..end];
-            assert_eq!("`hello $world!`", string);
-            if let Interpolation::Var { begin, end } = quotes[0] {
-                let var = &input[begin..end];
-                assert_eq!("$world", var);
-            }
-        } else {
-            panic!("test failed")
-        }
-    }
-
-    #[test]
-    fn test_super_string_block() {
-        let input = "   `hello ${if world {foo()} else {bar()}}`";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::SUPER_STRING { begin, end, quotes } = token {
-            let string = &input[begin..end];
-            assert_eq!("`hello ${if world {foo()} else {bar()}}`", string);
-            for quote in quotes {
-                if let Interpolation::Block { begin, end } = quote {
-                    let block = &input[begin..end];
-                    assert_eq!("${if world {foo()} else {bar()}}", block);
-                }
-            }
-        } else {
-            panic!("test failed")
-        }
-    }
-
-    #[test]
-    fn test_keywords() {
-        let input = " fn if else return";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        assert_eq!(token, Token::FUNCTION);
-        let token = lexer.next_token();
-        assert_eq!(token, Token::IF);
-        let token = lexer.next_token();
-        assert_eq!(token, Token::ELSE);
-        let token = lexer.next_token();
-        assert_eq!(token, Token::RETURN);
-    }
-}
-
 pub struct Cursor<'a> {
     len: usize,
     chars: std::str::Chars<'a>,
@@ -393,5 +239,159 @@ impl<'a> Lexer<'a> {
             },
             _ => tok,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_single_char_tokens() {
+        let input = "=+(){},;";
+
+        let tests: Vec<_> = vec![
+            Token::ASSIGN,
+            Token::PLUS,
+            Token::LPAREN,
+            Token::RPAREN,
+            Token::LBRACE,
+            Token::RBRACE,
+            Token::COMMA,
+            Token::SEMICOLON,
+        ];
+        let mut cursor = Cursor::new(input);
+        tests.iter().for_each(|expected_token| {
+            let tok: Token = cursor.next_token();
+            assert_eq!(
+                &tok, expected_token,
+                "failed to match token token::Type, expected {:?} got {:?}",
+                expected_token, tok
+            );
+        });
+    }
+
+    #[test]
+    fn test_identifier_after_whitespace() {
+        let input = "   rodrigo";
+        let mut cursor = Cursor::new(input);
+        let token = cursor.next_token();
+        if let Token::IDENT { begin, end } = token {
+            let name = &input[begin..end];
+            assert_eq!(name, "rodrigo")
+        } else {
+            panic!("test failed")
+        }
+    }
+    #[test]
+    fn test_rational() {
+        let input = "   1234/5678";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        if let Token::RATIONAL { num, denom } = token {
+            assert_eq!(num, 1234);
+            assert_eq!(denom, 5678)
+        } else {
+            panic!("test failed")
+        }
+    }
+
+    #[test]
+    fn test_float() {
+        let input = "   1234.5678";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        if let Token::FLOAT(f) = token {
+            assert_eq!(f, 1234.5678);
+        } else {
+            panic!("test failed")
+        }
+    }
+
+    #[test]
+    fn test_integer() {
+        let input = "   12345678";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        if let Token::INTEGER(n) = token {
+            assert_eq!(n, 12345678);
+        } else {
+            panic!("test failed")
+        }
+    }
+
+    #[test]
+    fn test_double_quote_string() {
+        let input = "   \"hello 'world'!\"";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        if let Token::STRING { begin, end } = token {
+            let string = &input[begin..end];
+            assert_eq!(string, "\"hello 'world'!\"");
+        } else {
+            panic!("test failed")
+        }
+    }
+
+    #[test]
+    fn test_single_quote_string() {
+        let input = "   \'hello \"world\"!\'";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        if let Token::STRING { begin, end } = token {
+            let string = &input[begin..end];
+            assert_eq!(string, "\'hello \"world\"!\'");
+        } else {
+            panic!("test failed")
+        }
+    }
+    #[test]
+    fn test_super_string_var() {
+        let input = "   `hello $world!`";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        if let Token::SUPER_STRING { begin, end, quotes } = token {
+            let string = &input[begin..end];
+            assert_eq!("`hello $world!`", string);
+            if let Interpolation::Var { begin, end } = quotes[0] {
+                let var = &input[begin..end];
+                assert_eq!("$world", var);
+            }
+        } else {
+            panic!("test failed")
+        }
+    }
+
+    #[test]
+    fn test_super_string_block() {
+        let input = "   `hello ${if world {foo()} else {bar()}}`";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        if let Token::SUPER_STRING { begin, end, quotes } = token {
+            let string = &input[begin..end];
+            assert_eq!("`hello ${if world {foo()} else {bar()}}`", string);
+            for quote in quotes {
+                if let Interpolation::Block { begin, end } = quote {
+                    let block = &input[begin..end];
+                    assert_eq!("${if world {foo()} else {bar()}}", block);
+                }
+            }
+        } else {
+            panic!("test failed")
+        }
+    }
+
+    #[test]
+    fn test_keywords() {
+        let input = " fn if else return";
+        let mut lexer = Lexer::new(input);
+        let token = lexer.next_token();
+        assert_eq!(token, Token::FUNCTION);
+        let token = lexer.next_token();
+        assert_eq!(token, Token::IF);
+        let token = lexer.next_token();
+        assert_eq!(token, Token::ELSE);
+        let token = lexer.next_token();
+        assert_eq!(token, Token::RETURN);
     }
 }
