@@ -38,7 +38,6 @@ impl<'a> Cursor<'a> {
             ';' => Token::SEMICOLON,
             '"' => self.double_quote_string(),
             '\'' => self.single_quote_string(),
-            '`' => self.super_string(),
             ch if ch.is_alphabetic() => self.identifier(),
             ch if ch.is_digit(10) => self.number(),
             _ => Token::ILLEGAL,
@@ -123,59 +122,6 @@ impl<'a> Cursor<'a> {
         self.eat_until(|ch| ch != '\'');
         let end = self.offset();
         Token::STRING { begin, end }
-    }
-
-    pub fn super_string(&mut self) -> Token {
-        let begin = self.offset() - 1;
-        let mut ch = self.bump();
-        let mut quotes = vec![];
-        while ch != '`' {
-            if ch == '$' {
-                match self.interpolation() {
-                    Some(quote) => {
-                        quotes.push(quote);
-                    }
-                    None => return Token::ILLEGAL,
-                }
-            }
-            ch = self.bump();
-        }
-
-        let end = self.offset();
-        Token::SUPER_STRING { begin, end, quotes }
-    }
-
-    pub fn interpolation(&mut self) -> Option<Interpolation> {
-        let begin = self.offset() - 1;
-        match self.bump() {
-            ch if ch.is_alphabetic() => {
-                self.eat_while(|ch| ch.is_alphanumeric());
-                let end = self.offset();
-                let var = Interpolation::Var { begin, end };
-                Some(var)
-            }
-            '{' => {
-                let mut lbrace = 1;
-                let mut rbrace = 0;
-                let mut open = true;
-
-                self.eat_until(|ch| {
-                    if ch == '{' {
-                        lbrace += 1;
-                        open = true;
-                    }
-                    if ch == '}' {
-                        rbrace += 1;
-                        open = false;
-                    }
-                    lbrace != rbrace || open
-                });
-                let end = self.offset();
-                let block = Interpolation::Block { begin, end };
-                Some(block)
-            }
-            _ => None,
-        }
     }
 }
 
@@ -341,41 +287,6 @@ mod test {
         if let Token::STRING { begin, end } = token {
             let string = &input[begin..end];
             assert_eq!(string, "\'hello \"world\"!\'");
-        } else {
-            panic!("test failed")
-        }
-    }
-    #[test]
-    fn test_super_string_var() {
-        let input = "   `hello $world!`";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::SUPER_STRING { begin, end, quotes } = token {
-            let string = &input[begin..end];
-            assert_eq!("`hello $world!`", string);
-            if let Interpolation::Var { begin, end } = quotes[0] {
-                let var = &input[begin..end];
-                assert_eq!("$world", var);
-            }
-        } else {
-            panic!("test failed")
-        }
-    }
-
-    #[test]
-    fn test_super_string_block() {
-        let input = "   `hello ${if world {foo()} else {bar()}}`";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.next_token();
-        if let Token::SUPER_STRING { begin, end, quotes } = token {
-            let string = &input[begin..end];
-            assert_eq!("`hello ${if world {foo()} else {bar()}}`", string);
-            for quote in quotes {
-                if let Interpolation::Block { begin, end } = quote {
-                    let block = &input[begin..end];
-                    assert_eq!("${if world {foo()} else {bar()}}", block);
-                }
-            }
         } else {
             panic!("test failed")
         }
