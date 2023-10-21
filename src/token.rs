@@ -39,16 +39,3 @@ pub enum Num {
     Float,
     Rat,
 }
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Interpolation {
-    Var {
-        begin: usize,
-        end: usize,
-        parent_key: usize,
-    },
-    Block {
-        begin: usize,
-        end: usize,
-        parent_key: usize,
-    },
-}

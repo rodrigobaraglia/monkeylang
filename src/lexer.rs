@@ -1,4 +1,4 @@
-use crate::token::{Interpolation, Num, Token};
+use crate::token::{Num, Token};
 
 pub struct Cursor<'a> {
     len: usize,
