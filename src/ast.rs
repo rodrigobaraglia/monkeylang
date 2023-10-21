@@ -17,16 +17,23 @@ enum Statement<'a> {
 }
 
 enum Expression<'a> {
-    IDENTIFIER(Identifier<'a>),
+    IDENTIFIER(std::rc::Rc<Identifier<'a>>),
     INTEGER_LITERAL(IntegerLiteral),
 }
 
 struct Identifier<'a> {
     token: Token,
-    value: &'a str,
+    key: &'a str,
+    value: Expression<'a>
 }
 
 struct IntegerLiteral {
     token: Token,
     value: i64,
 }
+
+ struct BinaryOp<'a> {
+    op: Token,
+    arg1: Expression<'a>,
+    arg2: Expression<'a>,
+ }
