@@ -40,6 +40,10 @@ mod test{
         let mut parser = Parser::from_tokens(tokens.into_iter());
         let t1 = parser.next_token();
         println!("{:?}", t1);
+        let t2 = parser.next_token();
+        println!("{:?}", t2);
+        let t3 = parser.next_token();
+        println!("{:?}", t3);
     }
 
 
