@@ -226,7 +226,10 @@ mod test {
             let name = &input[begin..end];
             assert_eq!(name, "rodrigo")
         } else {
-            panic!("test failed: expected Token::IDENT {{ begin, end }} , got {:?}", token)
+            panic!(
+                "test failed: expected Token::IDENT {{ begin, end }} , got {:?}",
+                token
+            )
         }
     }
     #[test]
@@ -238,7 +241,10 @@ mod test {
             assert_eq!(num, 1234);
             assert_eq!(denom, 5678)
         } else {
-            panic!("test failed: expected Token::RATIONAL {{ num, denom }} =, got {:?}", token)
+            panic!(
+                "test failed: expected Token::RATIONAL {{ num, denom }} =, got {:?}",
+                token
+            )
         }
     }
 
@@ -275,7 +281,10 @@ mod test {
             let string = &input[begin..end];
             assert_eq!(string, "\"hello 'world'!\"");
         } else {
-            panic!("test failed: expected Token::STRING {{ begin, end }}, got {:?}", token)
+            panic!(
+                "test failed: expected Token::STRING {{ begin, end }}, got {:?}",
+                token
+            )
         }
     }
 
@@ -288,7 +297,10 @@ mod test {
             let string = &input[begin..end];
             assert_eq!(string, "\'hello \"world\"!\'");
         } else {
-            panic!("test failed: expected Token::STRING {{ begin, end }}, got {:?}", token)
+            panic!(
+                "test failed: expected Token::STRING {{ begin, end }}, got {:?}",
+                token
+            )
         }
     }
 
